@@ -1,26 +1,61 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap');
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #fff8f7;
+  --foreground: #1e1b1b;
+  --primary: #c83e23;
+  --primary-dark: #a8321b;
+  --secondary: #e89218;
+  --tertiary: #2e7d32;
+  --surface: #f5efeb;
+  --border: #e6ded6;
+  --text-muted: #5a413c;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-primary: var(--primary);
+  --color-secondary: var(--secondary);
+  --color-tertiary: var(--tertiary);
+  --color-surface: var(--surface);
+  --color-border: var(--border);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+input, button, textarea, select {
+  font-family: inherit;
+}
+
+/* Utility classes */
+.shadow-card {
+  box-shadow: 0 2px 8px -1px rgba(78, 38, 14, 0.06), 0 1px 3px 0 rgba(78, 38, 14, 0.04);
+}
+
+.shadow-float {
+  box-shadow: 0 8px 20px -4px rgba(78, 38, 14, 0.10), 0 4px 8px -2px rgba(78, 38, 14, 0.05);
+}
+
+/* Hide scrollbar */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
 }
