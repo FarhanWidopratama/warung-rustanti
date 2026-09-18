@@ -15,7 +15,7 @@ export default function Home() {
       <div className="w-full max-w-md bg-[#fff8f7] min-h-screen shadow-2xl flex items-center justify-center">
         <div className="text-center">
           <h1 className="text-3xl font-bold text-[#1e1b1b] mb-2">
-            Warung Bu Sri
+            Warung Rustanti
           </h1>
           <p className="text-[#5a413c]">Memuat menu...</p>
         </div>

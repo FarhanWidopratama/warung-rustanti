@@ -220,7 +220,7 @@ export default function AdminSettingsPage() {
         <div className="bg-white rounded-2xl p-6 shadow-card border-2 border-[#e6ded6] mb-6">
           <h2 className="text-lg font-bold text-[#1e1b1b] mb-2 flex items-center gap-2">
             <ImageIcon className="w-5 h-5" />
-            QRIS Ibu Sri
+            QRIS Rustanti
           </h2>
           <p className="text-sm text-[#5a413c] mb-4">
             Upload gambar QRIS untuk ditampilkan ke customer saat checkout

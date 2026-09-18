@@ -3,7 +3,7 @@ import "./globals.css";
 import { CartProvider } from "./context/CartContext";
 
 export const metadata: Metadata = {
-  title: "Warung Bu Sri - Homestyle Indonesian Food",
+  title: "Warung Rustanti - Homestyle Indonesian Food",
   description: "Authentic Indonesian homestyle cooking",
 };
 

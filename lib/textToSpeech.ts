@@ -121,7 +121,7 @@ class TextToSpeech {
    * Test TTS with sample message
    */
   test() {
-    this.speak('Halo, ini adalah tes notifikasi suara untuk Warung Bu Sri');
+    this.speak('Halo, ini adalah tes notifikasi suara untuk Warung Rustanti');
   }
 }
 

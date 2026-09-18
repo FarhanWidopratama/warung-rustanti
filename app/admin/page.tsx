@@ -363,7 +363,7 @@ export default function AdminPage() {
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-2xl font-bold text-[#1e1b1b]">
-                🍳 Dapur Bu Sri
+                🍳 Dapur Rustanti
               </h1>
               <p className="text-sm text-[#5a413c]">Dashboard Admin</p>
             </div>
