@@ -1,0 +1,6 @@
+*.old.tsx
+*.old2.tsx
+*.backup
+*.backup.tsx
+.git
+node_modules
