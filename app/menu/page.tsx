@@ -1,9 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import { ShoppingCart, Plus } from 'lucide-react';
+import { ShoppingCart } from 'lucide-react';
 import { useCart } from '../context/CartContext';
-import { menuData, categories } from '../data/menuData';
+import { menuData } from '../data/menuData';
 import { useRouter } from 'next/navigation';
 
 export default function MenuPage() {
@@ -26,11 +26,11 @@ export default function MenuPage() {
     return `Rp${price.toLocaleString('id-ID')}`;
   };
 
-  const categoryList = ['Favorit', 'Semua', 'Nasi & Noodles', 'Lauk Pauk', 'Sayur', 'Minuman'];
+  const categoryList = ['Favorit', 'Semua', 'Nasi', 'Lauk', 'Sayur'];
 
   return (
-    <div className="min-h-screen bg-[#6c1717]">
-      <div className="mx-auto min-h-screen max-w-[414px] bg-[#fff8e9] shadow-2xl shadow-[#260909]">
+    <div className="min-h-screen bg-[#6c1717] text-[#3c1712] selection:bg-[#f4b83f] selection:text-[#3c1712]">
+      <div className="mx-auto min-h-screen max-w-[414px] overflow-hidden bg-[#fff8e9] shadow-2xl shadow-[#260909]">
         {/* Header */}
         <header className="relative z-10 flex items-center justify-between bg-[#fff8e9] px-5 pb-3 pt-5">
           <div>
