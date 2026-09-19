@@ -191,11 +191,11 @@ export default function TrackingPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-[#e6ded6] flex justify-center">
-        <div className="w-full max-w-md bg-[#fff8f7] min-h-screen shadow-2xl flex items-center justify-center">
+      <div className="min-h-screen bg-[#6c1717]">
+        <div className="mx-auto min-h-screen max-w-[414px] bg-[#fff8e9] shadow-2xl shadow-[#260909] flex items-center justify-center">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#c83e23] mx-auto mb-4"></div>
-            <p className="text-[#5a413c]">Memuat pesanan...</p>
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#7b1d18] mx-auto mb-4"></div>
+            <p className="text-[#936d5c]">Memuat pesanan...</p>
           </div>
         </div>
       </div>
@@ -204,19 +204,19 @@ export default function TrackingPage() {
 
   if (error || !order) {
     return (
-      <div className="min-h-screen bg-[#e6ded6] flex justify-center">
-        <div className="w-full max-w-md bg-[#fff8f7] min-h-screen shadow-2xl flex items-center justify-center px-4">
+      <div className="min-h-screen bg-[#6c1717]">
+        <div className="mx-auto min-h-screen max-w-[414px] bg-[#fff8e9] shadow-2xl shadow-[#260909] flex items-center justify-center px-4">
           <div className="text-center">
             <div className="text-6xl mb-4">❌</div>
-            <h2 className="text-xl font-bold text-[#1e1b1b] mb-2">
+            <h2 className="text-xl font-bold text-[#4d2018] mb-2">
               {error || 'Pesanan Tidak Ditemukan'}
             </h2>
-            <p className="text-sm text-[#5a413c] mb-6">
+            <p className="text-sm text-[#936d5c] mb-6">
               Periksa kembali kode tracking Anda
             </p>
             <button
               onClick={() => router.push('/menu')}
-              className="bg-[#c83e23] text-white px-6 py-3 rounded-full font-semibold hover:bg-[#a8321b] transition"
+              className="bg-[#e54b2e] text-white px-6 py-3 rounded-full font-bold hover:bg-[#c73a24] transition"
             >
               Kembali ke Menu
             </button>
@@ -231,182 +231,141 @@ export default function TrackingPage() {
   const progress = getProgressPercentage(order.status);
 
   return (
-    <div className="min-h-screen bg-[#e6ded6] flex justify-center">
-      <div className="w-full max-w-md bg-[#fff8f7] min-h-screen shadow-2xl relative">
-        {/* Header */}
-        <div className="bg-white border-b border-[#e6ded6] sticky top-0 z-40">
-          <div className="px-4 py-4">
-            <h1 className="text-xl font-bold text-[#1e1b1b] text-center">
-              Lacak Pesanan
-            </h1>
+    <div className="min-h-screen bg-[#6c1717]">
+      <div className="mx-auto min-h-screen max-w-[414px] bg-[#fff8e9] shadow-2xl shadow-[#260909] pb-28">
+        {/* Status Card at Top */}
+        <div className="px-5 pt-6">
+          <div className="rounded-[26px] bg-[#7b1d18] p-5 text-[#fff6e2]">
+            <p className="font-mono text-[10px] font-bold uppercase tracking-[.18em] text-[#ffd17e]">
+              Pesanan #{order.order_number}
+            </p>
+            <h2 className="mt-1 text-[28px] font-bold">
+              {order.status === 'cooking' ? 'Lagi dimasak!' : 
+               order.status === 'ready' ? 'Siap diambil!' :
+               order.status === 'completed' ? 'Selesai!' : 'Pesanan diterima!'}
+            </h2>
+            <p className="mt-1 text-xs text-[#f8d8a7]">
+              {order.status === 'cooking' ? 'Estimasi siap dalam 12 menit' :
+               order.status === 'ready' ? 'Pesanan Anda sudah siap!' :
+               order.status === 'completed' ? 'Terima kasih sudah memesan' :
+               'Pesanan Anda sedang diproses'}
+            </p>
+            <div className="mt-4 h-2 overflow-hidden rounded-full bg-[#56120f]">
+              <div
+                className="h-full rounded-full bg-[#edb13d] transition-all duration-500"
+                style={{ width: `${progress}%` }}
+              />
+            </div>
           </div>
         </div>
 
-        <div className="px-4 py-6">
-          {/* Tracking Code Card */}
-          <div className="bg-white rounded-2xl p-6 mb-4 shadow-card">
-            <div className="text-center mb-4">
-              <p className="text-xs text-[#5a413c] mb-1">Kode Tracking</p>
-              <p className="text-3xl font-bold text-[#c83e23] tracking-wider mb-2">
-                {order.tracking_code}
-              </p>
-              <p className="text-xs text-[#5a413c]">
-                {formatDate(order.created_at)} • {formatTime(order.created_at)}
-              </p>
-            </div>
-
-            {/* Progress Bar */}
-            <div className="mb-4">
-              <div className="h-2 bg-[#e6ded6] rounded-full overflow-hidden">
-                <div
-                  className={`h-full ${statusInfo.color} transition-all duration-500`}
-                  style={{ width: `${progress}%` }}
-                />
+        {/* Timeline Section */}
+        <div className="mt-7 px-5">
+          <h3 className="text-[22px] font-bold text-[#4d2018]">
+            Perjalanan pesananmu
+          </h3>
+          <div className="mt-5">
+            {[
+              { key: 'pending', title: 'Pesanan diterima', desc: `${formatTime(order.created_at)} · Kami sudah menerima pesananmu`, active: true },
+              { key: 'cooking', title: 'Sedang dimasak', desc: 'Dapur sedang menyiapkan pesanan', active: ['cooking', 'ready', 'completed'].includes(order.status) },
+              { key: 'ready', title: 'Siap diambil', desc: 'Tunggu sebentar lagi, ya!', active: ['ready', 'completed'].includes(order.status) },
+              { key: 'completed', title: 'Selesai', desc: 'Selamat menikmati hidanganmu', active: order.status === 'completed' }
+            ].map((step, i, arr) => (
+              <div className="relative flex gap-4 pb-7" key={step.key}>
+                {i < arr.length - 1 && (
+                  <div
+                    className={`absolute left-[9px] top-5 h-[calc(100%-10px)] w-0.5 ${
+                      step.active ? 'bg-[#e2633d]' : 'bg-[#ead7bd]'
+                    }`}
+                  />
+                )}
+                <span
+                  className={`z-10 grid h-5 w-5 place-items-center rounded-full border-4 ${
+                    step.active
+                      ? 'border-[#f3b34a] bg-[#d94a2e]'
+                      : 'border-[#ead7bd] bg-[#fff8e9]'
+                  }`}
+                >
+                  {step.active && (
+                    <span className="h-1.5 w-1.5 rounded-full bg-white" />
+                  )}
+                </span>
+                <div>
+                  <p
+                    className={`text-sm font-extrabold ${
+                      step.active ? 'text-[#59251c]' : 'text-[#aa8979]'
+                    }`}
+                  >
+                    {step.title}
+                  </p>
+                  <p className="mt-0.5 text-xs text-[#947062]">{step.desc}</p>
+                </div>
               </div>
-            </div>
-
-            {/* Current Status */}
-            <div className={`${statusInfo.color} bg-opacity-10 border-2 border-current rounded-xl p-4`}>
-              <div className="flex items-center gap-3 mb-2">
-                <StatusIcon className="w-6 h-6" />
-                <p className="text-base font-bold">{statusInfo.label}</p>
-              </div>
-              <p className="text-sm opacity-80">{statusInfo.description}</p>
-            </div>
+            ))}
           </div>
+        </div>
 
-          {/* Customer Info */}
-          <div className="bg-white rounded-2xl p-4 mb-4 shadow-card">
-            <h2 className="text-sm font-bold text-[#1e1b1b] mb-3">
-              Informasi Pelanggan
-            </h2>
-            <div className="space-y-2">
-              <div className="flex justify-between text-sm">
-                <span className="text-[#5a413c]">Nama:</span>
-                <span className="font-semibold text-[#1e1b1b]">
-                  {order.customer_name}
-                </span>
+        {/* Order Details */}
+        <div className="mt-5 px-5">
+          <div className="rounded-2xl border border-[#f0dfc8] bg-white p-4">
+            <h3 className="text-sm font-bold text-[#4d2018] mb-3">
+              Detail Pesanan
+            </h3>
+            <div className="space-y-2 mb-3">
+              <div className="flex justify-between text-xs">
+                <span className="text-[#936d5c]">Kode Tracking:</span>
+                <span className="font-bold text-[#4a231a]">{order.tracking_code}</span>
               </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-[#5a413c]">No. HP:</span>
-                <span className="font-semibold text-[#1e1b1b]">
-                  {order.phone_number}
-                </span>
+              <div className="flex justify-between text-xs">
+                <span className="text-[#936d5c]">Nama:</span>
+                <span className="font-semibold text-[#4a231a]">{order.customer_name}</span>
               </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-[#5a413c]">Tipe:</span>
-                <span className="font-semibold text-[#1e1b1b]">
+              <div className="flex justify-between text-xs">
+                <span className="text-[#936d5c]">Tipe:</span>
+                <span className="font-semibold text-[#4a231a]">
                   {order.order_type === 'dine_in' ? '🍽️ Makan di Tempat' : '📦 Bungkus'}
                 </span>
               </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-[#5a413c]">Pembayaran:</span>
-                <span className="font-semibold text-[#1e1b1b]">
+              <div className="flex justify-between text-xs">
+                <span className="text-[#936d5c]">Pembayaran:</span>
+                <span className="font-semibold text-[#4a231a]">
                   {order.payment_method === 'cash' ? '💵 Cash' : '📱 QRIS'}
-                  {order.payment_verified && (
-                    <span className="ml-1 text-green-600">✓</span>
-                  )}
                 </span>
               </div>
             </div>
-          </div>
 
-          {/* Order Items */}
-          <div className="bg-white rounded-2xl p-4 mb-4 shadow-card">
-            <h2 className="text-sm font-bold text-[#1e1b1b] mb-3">
-              Detail Pesanan
-            </h2>
-            <div className="space-y-2 mb-4">
+            {/* Items */}
+            <div className="border-t border-[#ead7bd] pt-3 space-y-2">
               {order.items.map((item, idx) => (
-                <div key={idx} className="flex justify-between text-sm">
-                  <span className="text-[#1e1b1b]">
+                <div key={idx} className="flex justify-between text-xs">
+                  <span className="text-[#4a231a]">
                     {item.quantity}x {item.name}
                   </span>
-                  <span className="font-semibold text-[#1e1b1b]">
+                  <span className="font-bold text-[#4a231a]">
                     {formatPrice(item.price * item.quantity)}
                   </span>
                 </div>
               ))}
             </div>
-            <div className="flex justify-between items-center pt-3 border-t-2 border-[#e6ded6]">
-              <p className="font-bold text-[#1e1b1b]">Total</p>
-              <p className="text-xl font-bold text-[#c83e23]">
+
+            {/* Total */}
+            <div className="flex justify-between items-center pt-3 mt-3 border-t-2 border-[#ead7bd]">
+              <span className="text-sm font-bold text-[#805949]">Total</span>
+              <span className="text-xl font-bold text-[#962c20]">
                 {formatPrice(order.total)}
-              </p>
+              </span>
             </div>
           </div>
+        </div>
 
-          {/* Status Timeline */}
-          <div className="bg-white rounded-2xl p-4 mb-4 shadow-card">
-            <h2 className="text-sm font-bold text-[#1e1b1b] mb-4">
-              Timeline Pesanan
-            </h2>
-            <div className="space-y-4">
-              {[
-                { status: 'pending', label: 'Pesanan Dibuat' },
-                { status: 'confirmed', label: 'Pembayaran Diterima' },
-                { status: 'cooking', label: 'Sedang Dimasak' },
-                { status: 'ready', label: 'Siap Diambil' },
-                { status: 'completed', label: 'Selesai' },
-              ].map((step, idx) => {
-                const isActive = getProgressPercentage(order.status) >= getProgressPercentage(step.status);
-                const isCurrent = order.status === step.status;
-                
-                return (
-                  <div key={step.status} className="flex items-center gap-3">
-                    <div
-                      className={`w-8 h-8 rounded-full flex items-center justify-center transition ${
-                        isActive
-                          ? isCurrent
-                            ? 'bg-[#c83e23] text-white ring-4 ring-[#c83e23]/20'
-                            : 'bg-[#2e7d32] text-white'
-                          : 'bg-[#e6ded6] text-[#8c827a]'
-                      }`}
-                    >
-                      {isActive ? '✓' : idx + 1}
-                    </div>
-                    <div className="flex-1">
-                      <p
-                        className={`text-sm font-semibold ${
-                          isActive ? 'text-[#1e1b1b]' : 'text-[#8c827a]'
-                        }`}
-                      >
-                        {step.label}
-                      </p>
-                      {isCurrent && (
-                        <p className="text-xs text-[#c83e23] font-semibold">
-                          Status saat ini
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Action Buttons */}
-          <div className="space-y-3">
-            <button
-              onClick={() => fetchOrder()}
-              className="w-full bg-[#c83e23] text-white rounded-full py-4 font-bold text-base shadow-float hover:bg-[#a8321b] active:scale-[0.98] transition-all"
-            >
-              🔄 Refresh Status
-            </button>
-            
-            <button
-              onClick={() => router.push('/menu')}
-              className="w-full bg-[#f5efeb] text-[#1e1b1b] border-2 border-[#e6ded6] rounded-full py-4 font-bold text-base hover:bg-[#e6ded6] transition flex items-center justify-center gap-2"
-            >
-              <Home className="w-5 h-5" />
-              Kembali ke Menu
-            </button>
-          </div>
-
-          {/* Auto Refresh Info */}
-          <p className="text-center text-xs text-[#5a413c] mt-4">
-            ✨ Halaman ini akan update otomatis saat status berubah
-          </p>
+        {/* Action Button */}
+        <div className="mt-5 px-5">
+          <button
+            onClick={() => router.push('/menu')}
+            className="w-full rounded-2xl border border-[#d79b70] bg-white py-3 text-sm font-bold text-[#9a3927] hover:bg-[#fff8e9] transition"
+          >
+            Tambah pesanan
+          </button>
         </div>
       </div>
     </div>

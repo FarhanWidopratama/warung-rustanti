@@ -1,18 +1,21 @@
 'use client';
 
 import { useState } from 'react';
-import { ShoppingCart, Flame, Plus } from 'lucide-react';
+import { ShoppingCart, Plus } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { menuData, categories } from '../data/menuData';
 import { useRouter } from 'next/navigation';
 
 export default function MenuPage() {
-  const [selectedCategory, setSelectedCategory] = useState('Semua Menu');
+  const [selectedCategory, setSelectedCategory] = useState('Favorit');
   const { addToCart, getCartTotal, getCartItemCount } = useCart();
   const router = useRouter();
 
+  // Filter menu based on category
   const filteredMenu =
-    selectedCategory === 'Semua Menu'
+    selectedCategory === 'Favorit'
+      ? menuData.filter((item) => item.isChefRecommendation)
+      : selectedCategory === 'Semua'
       ? menuData
       : menuData.filter((item) => item.category === selectedCategory);
 
@@ -20,151 +23,153 @@ export default function MenuPage() {
   const cartTotal = getCartTotal();
 
   const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('id-ID', {
-      style: 'currency',
-      currency: 'IDR',
-      minimumFractionDigits: 0,
-    }).format(price);
+    return `Rp${price.toLocaleString('id-ID')}`;
   };
 
+  const categoryList = ['Favorit', 'Semua', 'Nasi & Noodles', 'Lauk Pauk', 'Sayur', 'Minuman'];
+
   return (
-    <div className="min-h-screen bg-[#e6ded6] flex justify-center">
-      <div className="w-full max-w-md bg-[#fff8f7] min-h-screen shadow-2xl relative">
+    <div className="min-h-screen bg-[#6c1717]">
+      <div className="mx-auto min-h-screen max-w-[414px] bg-[#fff8e9] shadow-2xl shadow-[#260909]">
         {/* Header */}
-        <div className="bg-white border-b border-[#e6ded6] sticky top-0 z-40">
-          <div className="px-4 py-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <h1 className="text-2xl font-bold text-[#1e1b1b]">Warung Rustanti</h1>
-                <p className="text-sm text-[#5a413c] mt-0.5">Meja 04</p>
-              </div>
-            </div>
+        <header className="relative z-10 flex items-center justify-between bg-[#fff8e9] px-5 pb-3 pt-5">
+          <div>
+            <p className="font-mono text-[10px] font-bold uppercase tracking-[.18em] text-[#bb4a2f]">
+              Selamat datang di
+            </p>
+            <h1 className="text-[25px] leading-6 text-[#7b1d18] font-bold">
+              Warung Rustanti
+            </h1>
           </div>
+          <button
+            onClick={() => router.push('/checkout')}
+            aria-label="Buka keranjang"
+            className="relative grid h-11 w-11 place-items-center rounded-2xl border border-[#e9cfae] bg-white text-[#7b1d18] transition hover:-translate-y-0.5 hover:bg-[#fdf0d7]"
+          >
+            <ShoppingCart className="w-5 h-5" />
+            {cartItemCount > 0 && (
+              <span className="absolute -right-1 -top-1 grid h-5 min-w-5 place-items-center rounded-full bg-[#e54b2e] px-1 text-[10px] font-bold text-white">
+                {cartItemCount}
+              </span>
+            )}
+          </button>
+        </header>
+
+        {/* Hero Banner */}
+        <div className="relative mx-4 overflow-hidden rounded-[28px] bg-[#8d211b] px-5 py-5 text-[#fff5db] shadow-lg shadow-[#9a3523]/20">
+          <div className="absolute -right-4 -top-12 h-36 w-36 rounded-full border-[16px] border-[#e9a63a]/30" />
+          <div className="absolute bottom-1 right-9 h-14 w-14 rotate-12 rounded-[16px] bg-[#d74b2f]" />
+          <p className="relative text-xs font-medium text-[#ffd889]">
+            Masakan rumahan, rasa kenangan.
+          </p>
+          <h2 className="relative mt-1 max-w-[230px] text-[29px] leading-8 font-bold">
+            Makan enak, hati tenang.
+          </h2>
+          <button
+            onClick={() => router.push('/tracking')}
+            className="relative mt-4 flex items-center gap-2 text-xs font-bold text-[#ffe5a8] underline decoration-[#f1ac38] underline-offset-4"
+          >
+            Lacak pesanan saya <span>→</span>
+          </button>
         </div>
 
-        {/* Category Filter */}
-        <div className="sticky top-[73px] z-30 bg-[#fff8f7] border-b border-[#e6ded6] pb-3">
-          <div className="px-4 pt-3">
-            <div className="flex gap-2 overflow-x-auto scrollbar-hide">
-              {categories.map((category) => (
-                <button
-                  key={category}
-                  onClick={() => setSelectedCategory(category)}
-                  className={`px-4 py-2 rounded-full text-sm font-semibold whitespace-nowrap transition-all ${
-                    selectedCategory === category
-                      ? 'bg-[#c83e23] text-white shadow-float'
-                      : 'bg-[#f5efeb] text-[#1e1b1b] border border-[#e6ded6]'
-                  }`}
-                >
-                  {category}
-                </button>
-              ))}
-            </div>
-          </div>
+        {/* Category Pills */}
+        <div className="mt-6 flex gap-2 overflow-x-auto px-4 pb-1 no-scrollbar">
+          {categoryList.map((cat) => (
+            <button
+              key={cat}
+              onClick={() => setSelectedCategory(cat)}
+              className={`shrink-0 rounded-full px-4 py-2 text-xs font-bold transition ${
+                selectedCategory === cat
+                  ? 'bg-[#7b1d18] text-white shadow-md'
+                  : 'border border-[#eddbc1] bg-white text-[#875b45]'
+              }`}
+            >
+              {cat}
+            </button>
+          ))}
         </div>
 
-        {/* Menu Grid */}
-        <div className="px-4 py-6 pb-40">
-          <div className="grid grid-cols-1 gap-4">
+        {/* Menu Section */}
+        <div className="mt-5 px-4 pb-32">
+          <div className="mb-3 flex items-end justify-between">
+            <div>
+              <p className="font-mono text-[10px] font-bold uppercase tracking-[.16em] text-[#c46336]">
+                Paling dicari
+              </p>
+              <h3 className="text-[23px] text-[#4c2018] font-bold">
+                Pilih menu hari ini
+              </h3>
+            </div>
+          </div>
+
+          {/* Food Cards Grid */}
+          <div className="grid grid-cols-2 gap-3">
             {filteredMenu.map((item) => (
-              <div
+              <article
                 key={item.id}
-                className="bg-white rounded-2xl overflow-hidden shadow-card"
+                className="overflow-hidden rounded-[21px] border border-[#f0dfc8] bg-white shadow-[0_5px_16px_rgba(84,38,17,.07)]"
               >
                 {/* Image */}
-                <div className="relative h-48 bg-[#f5efeb]">
+                <div className="relative h-32 bg-[#eec98b]">
                   <img
                     src={item.image}
                     alt={item.name}
-                    className="w-full h-full object-cover"
+                    className="h-full w-full object-cover"
                   />
-                  {/* Badges */}
-                  <div className="absolute top-3 left-3 flex flex-wrap gap-2">
-                    {item.isChefRecommendation && (
-                      <span className="px-2 py-1 bg-[#e89218]/15 text-[#e89218] text-xs font-bold rounded-md">
-                        Chef's Pick
-                      </span>
-                    )}
-                    {item.isHalal && (
-                      <span className="px-2 py-1 bg-[#2e7d32]/12 text-[#2e7d32] text-xs font-bold rounded-md">
-                        Halal
-                      </span>
-                    )}
-                    {item.isVegetarian && (
-                      <span className="px-2 py-1 bg-[#2e7d32]/12 text-[#2e7d32] text-xs font-bold rounded-md">
-                        Vegetarian
-                      </span>
-                    )}
-                  </div>
+                  {item.isHalal && (
+                    <span className="absolute left-2 top-2 rounded-full bg-[#fff8e9]/95 px-2 py-1 text-[9px] font-bold text-[#7d681c]">
+                      ✓ HALAL
+                    </span>
+                  )}
                 </div>
 
                 {/* Content */}
-                <div className="p-4">
-                  <div className="flex items-start justify-between mb-2">
-                    <h3 className="text-base font-semibold text-[#1e1b1b] flex-1">
-                      {item.name}
-                    </h3>
-                    {item.spicyLevel > 0 && (
-                      <div className="flex gap-0.5 ml-2">
-                        {Array.from({ length: item.spicyLevel }).map((_, i) => (
-                          <Flame
-                            key={i}
-                            className="w-4 h-4 text-[#c83e23] fill-[#c83e23]"
-                          />
-                        ))}
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Price and Add Button */}
-                  <div className="flex items-center justify-between mt-4">
-                    <span className="text-lg font-bold text-[#1e1b1b]">
+                <div className="p-3">
+                  <h4 className="min-h-10 text-[13px] font-extrabold leading-4 text-[#4a231a]">
+                    {item.name}
+                  </h4>
+                  <p className="mt-0.5 text-[10px] text-[#9c7763]">
+                    {item.description?.substring(0, 30) || 'Enak & lezat'}
+                  </p>
+                  <div className="mt-3 flex items-center justify-between">
+                    <span className="text-[13px] font-extrabold text-[#a53425]">
                       {formatPrice(item.price)}
                     </span>
                     <button
                       onClick={() => addToCart(item)}
-                      className="w-11 h-11 rounded-full bg-[#c83e23] text-white flex items-center justify-center hover:bg-[#a8321b] active:scale-95 transition-all shadow-float"
+                      aria-label={`Tambah ${item.name}`}
+                      className="grid h-7 w-7 place-items-center rounded-lg bg-[#e55032] text-lg font-bold leading-none text-white transition hover:scale-110"
                     >
-                      <Plus className="w-5 h-5" />
+                      +
                     </button>
                   </div>
                 </div>
-              </div>
+              </article>
             ))}
           </div>
         </div>
 
-        {/* ALWAYS VISIBLE Floating Cart Button */}
-        <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md bg-white border-t-2 border-[#e6ded6] shadow-float z-[100]">
-          <div className="px-4 py-4">
-            {cartItemCount > 0 ? (
-              <button
-                onClick={() => router.push('/checkout')}
-                className="w-full bg-[#221f1f] text-white rounded-full px-6 py-4 flex items-center justify-between shadow-float hover:scale-[1.02] active:scale-[0.98] transition-all"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-[#c83e23] flex items-center justify-center">
-                    <ShoppingCart className="w-5 h-5" />
-                  </div>
-                  <div className="text-left">
-                    <p className="text-xs font-semibold opacity-80">
-                      {cartItemCount} Item{cartItemCount > 1 ? 's' : ''}
-                    </p>
-                    <p className="text-sm font-bold">{formatPrice(cartTotal)}</p>
-                  </div>
+        {/* Floating Cart Summary */}
+        {cartItemCount > 0 && (
+          <div className="fixed bottom-0 left-1/2 w-full max-w-[414px] -translate-x-1/2 border-t border-[#efddc3] bg-[#fffdf7]/95 px-5 py-4 backdrop-blur z-50">
+            <button
+              onClick={() => router.push('/checkout')}
+              className="w-full rounded-2xl bg-[#e54b2e] py-4 text-sm font-extrabold text-white shadow-lg shadow-[#db6347]/30 transition hover:bg-[#c73a24] flex items-center justify-between px-6"
+            >
+              <div className="flex items-center gap-3">
+                <div className="grid h-10 w-10 place-items-center rounded-full bg-white/20">
+                  <ShoppingCart className="w-5 h-5" />
                 </div>
-                <span className="text-sm font-bold bg-[#c83e23] px-4 py-2 rounded-full">
-                  Lihat Keranjang
-                </span>
-              </button>
-            ) : (
-              <div className="w-full bg-[#f5efeb] text-[#5a413c] rounded-full px-6 py-4 flex items-center justify-center border-2 border-[#e6ded6]">
-                <ShoppingCart className="w-5 h-5 mr-2" />
-                <span className="text-sm font-semibold">Keranjang (0)</span>
+                <div className="text-left">
+                  <p className="text-xs opacity-90">{cartItemCount} Item</p>
+                  <p className="text-sm font-bold">{formatPrice(cartTotal)}</p>
+                </div>
               </div>
-            )}
+              <span className="text-sm">Lihat Keranjang →</span>
+            </button>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );

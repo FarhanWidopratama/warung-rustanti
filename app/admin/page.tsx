@@ -190,9 +190,18 @@ export default function AdminPage() {
   const readyOrders = orders.filter((order) => order.status === 'ready');
   const completedOrders = orders.filter((order) => order.status === 'completed');
 
-  const OrderCard = ({ order }: { order: Order }) => {
-    const getStatusBadge = () => {
-      const badges: Record<string, { label: string; color: string }> = {
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-[#6c1717] flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#fff8e9] mx-auto mb-4"></div>
+          <p className="text-[#fff8e9]">Memuat...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Count by status
         pending: { label: 'Menunggu Bayar', color: 'bg-yellow-100 text-yellow-800' },
         payment_review: { label: 'Verifikasi QRIS', color: 'bg-blue-100 text-blue-800' },
         confirmed: { label: 'Siap Masak', color: 'bg-green-100 text-green-800' },
@@ -346,188 +355,216 @@ export default function AdminPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-[#fff8f7] flex items-center justify-center">
+      <div className="min-h-screen bg-[#6c1717] flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#c83e23] mx-auto mb-4"></div>
-          <p className="text-lg text-[#5a413c]">Memuat data...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#fff8e9] mx-auto mb-4"></div>
+          <p className="text-[#fff8e9]">Memuat...</p>
         </div>
       </div>
     );
   }
 
+  // Count by status
+  const masukCount = orders.filter(o => ['pending', 'payment_review'].includes(o.status)).length;
+  const dimasakCount = orders.filter(o => o.status === 'cooking').length;
+  const selesaiCount = orders.filter(o => o.status === 'completed').length;
+  const activeOrders = orders.filter(o => !['completed', 'cancelled'].includes(o.status));
+
   return (
-    <div className="min-h-screen bg-[#fff8f7]">
+    <div className="min-h-screen bg-[#fff8e9]">
       {/* Header */}
-      <div className="bg-white border-b-2 border-[#e6ded6] sticky top-0 z-40 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold text-[#1e1b1b]">
-                🍳 Dapur Rustanti
-              </h1>
-              <p className="text-sm text-[#5a413c]">Dashboard Admin</p>
+      <header className="bg-[#5d1715] px-5 pb-6 pt-5 text-white">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="font-mono text-[10px] font-bold uppercase tracking-[.17em] text-[#f3bf65]">
+              Warung Rustanti
+            </p>
+            <h1 className="text-[27px] font-bold">Dapur hari ini</h1>
+          </div>
+          <div className="flex gap-2">
+            <button
+              onClick={toggleTTS}
+              className="rounded-lg border border-white/25 px-2 py-1 text-[10px] font-bold hover:bg-white/10 transition"
+            >
+              {isTTSEnabled ? <Bell className="w-4 h-4" /> : <BellOff className="w-4 h-4" />}
+            </button>
+            <Link
+              href="/admin/settings"
+              className="rounded-lg border border-white/25 px-2 py-1 text-[10px] font-bold hover:bg-white/10 transition"
+            >
+              <Settings className="w-4 h-4" />
+            </Link>
+          </div>
+        </div>
+
+        {/* Stats */}
+        <div className="mt-5 grid grid-cols-3 gap-2">
+          <div className="rounded-xl bg-white/10 p-2">
+            <b className="text-xl font-bold">{String(masukCount).padStart(2, '0')}</b>
+            <span className="block text-[9px] text-[#f6d7a5]">Masuk</span>
+          </div>
+          <div className="rounded-xl bg-white/10 p-2">
+            <b className="text-xl font-bold">{String(dimasakCount).padStart(2, '0')}</b>
+            <span className="block text-[9px] text-[#f6d7a5]">Dimasak</span>
+          </div>
+          <div className="rounded-xl bg-white/10 p-2">
+            <b className="text-xl font-bold">{String(selesaiCount).padStart(2, '0')}</b>
+            <span className="block text-[9px] text-[#f6d7a5]">Selesai</span>
+          </div>
+        </div>
+      </header>
+
+      {/* Orders Table */}
+      <div className="px-4 pt-5">
+        <div className="mb-3 flex items-center justify-between">
+          <h2 className="text-[22px] font-bold text-[#4d2018]">Pesanan aktif</h2>
+          <span className="rounded-full bg-[#f5dfac] px-2 py-1 font-mono text-[9px] font-bold text-[#89531f]">
+            LIVE
+          </span>
+        </div>
+
+        <div className="overflow-hidden rounded-2xl border border-[#ead8bd] bg-white">
+          {/* Table Header */}
+          <div className="grid grid-cols-[1.2fr_.7fr_.7fr] border-b border-[#ead8bd] bg-[#f9f0df] px-3 py-2 font-mono text-[9px] font-bold uppercase tracking-wider text-[#936f5c]">
+            <span>Pelanggan</span>
+            <span>Status</span>
+            <span className="text-right">Aksi</span>
+          </div>
+
+          {/* Table Rows */}
+          {activeOrders.length === 0 ? (
+            <div className="p-8 text-center text-sm text-[#936f5c]">
+              Tidak ada pesanan aktif
             </div>
-            
-            <div className="flex items-center gap-2">
-              {/* Settings Link */}
-              <Link
-                href="/admin/settings"
-                className="p-3 rounded-xl bg-gray-100 text-gray-600 hover:bg-gray-200 transition"
-                title="Pengaturan"
-              >
-                <Settings className="w-6 h-6" />
-              </Link>
+          ) : (
+            activeOrders.map((order) => {
+              const getStatusInfo = () => {
+                if (order.status === 'payment_review') {
+                  return { label: 'Verifikasi', bg: 'bg-[#fde2a4]', text: 'text-[#956216]' };
+                }
+                if (order.status === 'confirmed' || order.status === 'pending') {
+                  return { label: 'Baru', bg: 'bg-[#fde2a4]', text: 'text-[#956216]' };
+                }
+                if (order.status === 'cooking') {
+                  return { label: 'Dimasak', bg: 'bg-[#f9d8cb]', text: 'text-[#a34229]' };
+                }
+                if (order.status === 'ready') {
+                  return { label: 'Siap', bg: 'bg-[#dcecd7]', text: 'text-[#497141]' };
+                }
+                return { label: 'Baru', bg: 'bg-[#fde2a4]', text: 'text-[#956216]' };
+              };
+
+              const statusInfo = getStatusInfo();
               
-              {/* TTS Toggle */}
-              <button
-                onClick={toggleTTS}
-                className={`p-3 rounded-xl transition ${
-                  isTTSEnabled
-                    ? 'bg-green-100 text-green-600'
-                    : 'bg-gray-100 text-gray-400'
-                }`}
-                title={isTTSEnabled ? 'Notif Suara ON' : 'Notif Suara OFF'}
-              >
-                {isTTSEnabled ? <Bell className="w-6 h-6" /> : <BellOff className="w-6 h-6" />}
-              </button>
-            </div>
-          </div>
+              const getNextAction = () => {
+                if (order.status === 'payment_review') {
+                  return {
+                    label: 'Verifikasi',
+                    onClick: () => handleVerifyPayment(order.id, true),
+                    showReject: true,
+                  };
+                }
+                if (order.status === 'pending' || order.status === 'confirmed') {
+                  return {
+                    label: 'Masak',
+                    onClick: () => handleUpdateStatus(order.id, 'cooking'),
+                    showReject: false,
+                  };
+                }
+                if (order.status === 'cooking') {
+                  return {
+                    label: 'Siap',
+                    onClick: () => handleUpdateStatus(order.id, 'ready'),
+                    showReject: false,
+                  };
+                }
+                if (order.status === 'ready') {
+                  return {
+                    label: 'Selesai',
+                    onClick: () => handleUpdateStatus(order.id, 'completed'),
+                    showReject: false,
+                  };
+                }
+                return { label: 'Proses', onClick: () => {}, showReject: false };
+              };
 
-          {/* Stats */}
-          <div className="grid grid-cols-5 gap-2 mt-4">
-            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-2 text-center">
-              <p className="text-xs text-yellow-700">Menunggu</p>
-              <p className="text-xl font-bold text-yellow-800">{pendingPaymentOrders.length}</p>
-            </div>
-            <div className="bg-green-50 border border-green-200 rounded-lg p-2 text-center">
-              <p className="text-xs text-green-700">Confirmed</p>
-              <p className="text-xl font-bold text-green-800">{confirmedOrders.length}</p>
-            </div>
-            <div className="bg-orange-50 border border-orange-200 rounded-lg p-2 text-center">
-              <p className="text-xs text-orange-700">Masak</p>
-              <p className="text-xl font-bold text-orange-800">{cookingOrders.length}</p>
-            </div>
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-2 text-center">
-              <p className="text-xs text-blue-700">Siap</p>
-              <p className="text-xl font-bold text-blue-800">{readyOrders.length}</p>
-            </div>
-            <div className="bg-gray-50 border border-gray-200 rounded-lg p-2 text-center">
-              <p className="text-xs text-gray-700">Selesai</p>
-              <p className="text-xl font-bold text-gray-800">{completedOrders.length}</p>
-            </div>
-          </div>
+              const action = getNextAction();
+
+              return (
+                <div
+                  key={order.id}
+                  className="grid grid-cols-[1.2fr_.7fr_.7fr] items-center border-b border-[#f2e6d4] px-3 py-3 last:border-0"
+                >
+                  {/* Customer Info */}
+                  <div>
+                    <p className="text-xs font-extrabold text-[#4c251a]">
+                      {order.customer_name}
+                    </p>
+                    <p className="mt-0.5 font-mono text-[9px] text-[#987261]">
+                      {order.tracking_code} · {order.items.length} item · {order.payment_method === 'cash' ? 'Cash' : 'QRIS'}
+                    </p>
+                  </div>
+
+                  {/* Status Badge */}
+                  <span className={`w-fit rounded-full px-2 py-1 text-[9px] font-bold ${statusInfo.bg} ${statusInfo.text}`}>
+                    {statusInfo.label}
+                  </span>
+
+                  {/* Action Buttons */}
+                  <div className="justify-self-end flex gap-2">
+                    {order.payment_proof_url && (
+                      <button
+                        onClick={() => setSelectedImage(order.payment_proof_url)}
+                        className="rounded-lg bg-blue-500 px-2 py-1.5 text-[9px] font-bold text-white hover:bg-blue-600"
+                      >
+                        <Eye className="w-3 h-3" />
+                      </button>
+                    )}
+                    <button
+                      onClick={action.onClick}
+                      className="rounded-lg bg-[#7b1d18] px-2 py-1.5 text-[9px] font-bold text-white hover:bg-[#5d1614]"
+                    >
+                      {action.label}
+                    </button>
+                    {action.showReject && (
+                      <button
+                        onClick={() => handleVerifyPayment(order.id, false)}
+                        className="rounded-lg bg-red-500 px-2 py-1.5 text-[9px] font-bold text-white hover:bg-red-600"
+                      >
+                        ✕
+                      </button>
+                    )}
+                  </div>
+                </div>
+              );
+            })
+          )}
         </div>
       </div>
 
-      {/* Order Columns */}
-      <div className="max-w-7xl mx-auto px-4 py-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-          {/* Column 1: Pending Payment */}
-          <div>
-            <h2 className="text-sm font-bold text-[#1e1b1b] mb-3 flex items-center gap-2">
-              <Clock className="w-4 h-4" />
-              Menunggu Verifikasi ({pendingPaymentOrders.length})
-            </h2>
-            <div className="space-y-3">
-              {pendingPaymentOrders.length === 0 ? (
-                <p className="text-sm text-[#8c827a] text-center py-8 bg-white rounded-lg">
-                  Tidak ada pesanan
-                </p>
-              ) : (
-                pendingPaymentOrders.map((order) => <OrderCard key={order.id} order={order} />)
-              )}
-            </div>
-          </div>
-
-          {/* Column 2: Confirmed */}
-          <div>
-            <h2 className="text-sm font-bold text-[#1e1b1b] mb-3 flex items-center gap-2">
-              <CheckCircle className="w-4 h-4" />
-              Siap Masak ({confirmedOrders.length})
-            </h2>
-            <div className="space-y-3">
-              {confirmedOrders.length === 0 ? (
-                <p className="text-sm text-[#8c827a] text-center py-8 bg-white rounded-lg">
-                  Tidak ada pesanan
-                </p>
-              ) : (
-                confirmedOrders.map((order) => <OrderCard key={order.id} order={order} />)
-              )}
-            </div>
-          </div>
-
-          {/* Column 3: Cooking */}
-          <div>
-            <h2 className="text-sm font-bold text-[#1e1b1b] mb-3 flex items-center gap-2">
-              <ChefHat className="w-4 h-4" />
-              Sedang Masak ({cookingOrders.length})
-            </h2>
-            <div className="space-y-3">
-              {cookingOrders.length === 0 ? (
-                <p className="text-sm text-[#8c827a] text-center py-8 bg-white rounded-lg">
-                  Tidak ada pesanan
-                </p>
-              ) : (
-                cookingOrders.map((order) => <OrderCard key={order.id} order={order} />)
-              )}
-            </div>
-          </div>
-
-          {/* Column 4: Ready */}
-          <div>
-            <h2 className="text-sm font-bold text-[#1e1b1b] mb-3 flex items-center gap-2">
-              <Package className="w-4 h-4" />
-              Siap Diambil ({readyOrders.length})
-            </h2>
-            <div className="space-y-3">
-              {readyOrders.length === 0 ? (
-                <p className="text-sm text-[#8c827a] text-center py-8 bg-white rounded-lg">
-                  Tidak ada pesanan
-                </p>
-              ) : (
-                readyOrders.map((order) => <OrderCard key={order.id} order={order} />)
-              )}
-            </div>
-          </div>
-
-          {/* Column 5: Completed */}
-          <div>
-            <h2 className="text-sm font-bold text-[#1e1b1b] mb-3 flex items-center gap-2">
-              <CheckCircle className="w-4 h-4" />
-              Selesai ({completedOrders.length})
-            </h2>
-            <div className="space-y-3">
-              {completedOrders.length === 0 ? (
-                <p className="text-sm text-[#8c827a] text-center py-8 bg-white rounded-lg">
-                  Tidak ada pesanan
-                </p>
-              ) : (
-                completedOrders.slice(0, 10).map((order) => <OrderCard key={order.id} order={order} />)
-              )}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Image Preview Modal */}
+      {/* Image Modal */}
       {selectedImage && (
         <div
-          className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4"
           onClick={() => setSelectedImage(null)}
         >
-          <button
-            onClick={() => setSelectedImage(null)}
-            className="absolute top-4 right-4 bg-white text-black p-2 rounded-full"
-          >
-            <X className="w-6 h-6" />
-          </button>
-          <img
-            src={selectedImage}
-            alt="Preview"
-            className="max-w-full max-h-full rounded-lg"
-          />
+          <div className="relative max-w-2xl">
+            <button
+              onClick={() => setSelectedImage(null)}
+              className="absolute -right-2 -top-2 flex h-8 w-8 items-center justify-center rounded-full bg-white text-black shadow-lg"
+            >
+              <X className="h-5 w-5" />
+            </button>
+            <img
+              src={selectedImage}
+              alt="Bukti Pembayaran"
+              className="max-h-[80vh] rounded-lg"
+              onClick={(e) => e.stopPropagation()}
+            />
+          </div>
         </div>
       )}
     </div>
   );
 }
+
