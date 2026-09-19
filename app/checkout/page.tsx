@@ -539,8 +539,6 @@ export default function CheckoutPage() {
             </button>
           </div>
         </div>
-          </div>
-        </div>
       </div>
     </div>
   );
