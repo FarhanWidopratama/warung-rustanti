@@ -1,10 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Clock, CheckCircle, ChefHat, Package, Bell, BellOff, Eye, X, Settings } from 'lucide-react';
-import Link from 'next/link';
+import { Eye, X } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
-import { tts } from '@/lib/textToSpeech';
 
 interface OrderItem {
   id: string;
@@ -16,14 +14,13 @@ interface OrderItem {
 interface Order {
   id: string;
   order_number: string;
-  table_number: string;
+  tracking_code: string;
   customer_name: string;
   phone_number: string;
   order_type: string;
   payment_method: string;
   payment_proof_url: string | null;
   payment_verified: boolean;
-  tracking_code: string;
   items: OrderItem[];
   total: number;
   status: string;
@@ -33,16 +30,8 @@ interface Order {
 export default function AdminPage() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [isTTSEnabled, setIsTTSEnabled] = useState(true);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
-  // Initialize TTS
-  useEffect(() => {
-    const enabled = tts.isEnabled();
-    setIsTTSEnabled(enabled);
-  }, []);
-
-  // Fetch orders and subscribe to changes
   useEffect(() => {
     fetchOrders();
 
@@ -51,14 +40,7 @@ export default function AdminPage() {
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'orders' },
-        (payload) => {
-          console.log('Order change:', payload);
-          
-          if (payload.eventType === 'INSERT') {
-            const newOrder = payload.new as Order;
-            announceNewOrder(newOrder);
-          }
-          
+        () => {
           fetchOrders();
         }
       )
@@ -69,17 +51,6 @@ export default function AdminPage() {
     };
   }, []);
 
-  const announceNewOrder = (order: Order) => {
-    if (!tts.isEnabled()) return;
-
-    tts.announceNewOrder({
-      customerName: order.customer_name,
-      orderNumber: order.tracking_code,
-      total: order.total,
-      itemCount: order.items.reduce((sum, item) => sum + item.quantity, 0),
-    });
-  };
-
   const fetchOrders = async () => {
     try {
       const { data, error } = await supabase
@@ -87,11 +58,7 @@ export default function AdminPage() {
         .select('*')
         .order('created_at', { ascending: false });
 
-      if (error) {
-        console.error('Error fetching orders:', error);
-        return;
-      }
-
+      if (error) throw error;
       setOrders(data || []);
     } catch (error) {
       console.error('Error:', error);
@@ -110,19 +77,11 @@ export default function AdminPage() {
         })
         .eq('id', orderId);
 
-      if (error) {
-        console.error('Error verifying payment:', error);
-        alert('Gagal memverifikasi pembayaran');
-        return;
-      }
-
-      if (approve && tts.isEnabled()) {
-        tts.speak('Pembayaran diterima');
-      }
-
+      if (error) throw error;
       fetchOrders();
     } catch (error) {
       console.error('Error:', error);
+      alert('Gagal memverifikasi pembayaran');
     }
   };
 
@@ -133,82 +92,29 @@ export default function AdminPage() {
         .update({ status: newStatus })
         .eq('id', orderId);
 
-      if (error) {
-        console.error('Error updating status:', error);
-        alert('Gagal update status');
-        return;
-      }
-
-      if (tts.isEnabled()) {
-        if (newStatus === 'cooking') {
-          tts.speak('Pesanan sedang dimasak');
-        } else if (newStatus === 'ready') {
-          tts.speak('Pesanan siap diambil');
-        } else if (newStatus === 'completed') {
-          tts.speak('Pesanan selesai');
-        }
-      }
-
+      if (error) throw error;
       fetchOrders();
     } catch (error) {
       console.error('Error:', error);
+      alert('Gagal update status');
     }
   };
-
-  const toggleTTS = () => {
-    const newState = !isTTSEnabled;
-    setIsTTSEnabled(newState);
-    tts.setEnabled(newState);
-    
-    if (newState) {
-      tts.speak('Notifikasi suara diaktifkan');
-    }
-  };
-
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('id-ID', {
-      style: 'currency',
-      currency: 'IDR',
-      minimumFractionDigits: 0,
-    }).format(price);
-  };
-
-  const formatTime = (timestamp: string) => {
-    const date = new Date(timestamp);
-    return date.toLocaleTimeString('id-ID', {
-      hour: '2-digit',
-      minute: '2-digit',
-    });
-  };
-
-  // Categorize orders
-  const pendingPaymentOrders = orders.filter(
-    (order) => order.status === 'pending' || order.status === 'payment_review'
-  );
-  const confirmedOrders = orders.filter((order) => order.status === 'confirmed');
-  const cookingOrders = orders.filter((order) => order.status === 'cooking');
-  const readyOrders = orders.filter((order) => order.status === 'ready');
-  const completedOrders = orders.filter((order) => order.status === 'completed');
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-[#6c1717] flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#fff8e9] mx-auto mb-4"></div>
-          <p className="text-[#fff8e9]">Memuat...</p>
-        </div>
-      </div>
+      <main className="min-h-screen bg-[#fff8e9] flex items-center justify-center">
+        <p className="text-[#7b1d18]">Memuat...</p>
+      </main>
     );
   }
 
-  // Count by status
   const masukCount = orders.filter(o => ['pending', 'payment_review'].includes(o.status)).length;
   const dimasakCount = orders.filter(o => o.status === 'cooking').length;
   const selesaiCount = orders.filter(o => o.status === 'completed').length;
   const activeOrders = orders.filter(o => !['completed', 'cancelled'].includes(o.status));
 
   return (
-    <div className="min-h-screen bg-[#fff8e9]">
+    <main className="min-h-screen bg-[#fff8e9] pb-8">
       {/* Header */}
       <header className="bg-[#5d1715] px-5 pb-6 pt-5 text-white">
         <div className="flex items-center justify-between">
@@ -216,45 +122,35 @@ export default function AdminPage() {
             <p className="font-mono text-[10px] font-bold uppercase tracking-[.17em] text-[#f3bf65]">
               Warung Rustanti
             </p>
-            <h1 className="text-[27px] font-bold">Dapur hari ini</h1>
+            <h1 className="text-[27px]" style={{fontWeight: 700}}>Dapur hari ini</h1>
           </div>
-          <div className="flex gap-2">
-            <button
-              onClick={toggleTTS}
-              className="rounded-lg border border-white/25 px-2 py-1 text-[10px] font-bold hover:bg-white/10 transition"
-            >
-              {isTTSEnabled ? <Bell className="w-4 h-4" /> : <BellOff className="w-4 h-4" />}
-            </button>
-            <Link
-              href="/admin/settings"
-              className="rounded-lg border border-white/25 px-2 py-1 text-[10px] font-bold hover:bg-white/10 transition"
-            >
-              <Settings className="w-4 h-4" />
-            </Link>
-          </div>
+          <a
+            href="/menu"
+            className="rounded-lg border border-white/25 px-2 py-1 text-[10px] font-bold hover:bg-white/10 transition"
+          >
+            Keluar
+          </a>
         </div>
 
         {/* Stats */}
         <div className="mt-5 grid grid-cols-3 gap-2">
-          <div className="rounded-xl bg-white/10 p-2">
-            <b className="text-xl font-bold">{String(masukCount).padStart(2, '0')}</b>
-            <span className="block text-[9px] text-[#f6d7a5]">Masuk</span>
-          </div>
-          <div className="rounded-xl bg-white/10 p-2">
-            <b className="text-xl font-bold">{String(dimasakCount).padStart(2, '0')}</b>
-            <span className="block text-[9px] text-[#f6d7a5]">Dimasak</span>
-          </div>
-          <div className="rounded-xl bg-white/10 p-2">
-            <b className="text-xl font-bold">{String(selesaiCount).padStart(2, '0')}</b>
-            <span className="block text-[9px] text-[#f6d7a5]">Selesai</span>
-          </div>
+          {[
+            [String(masukCount).padStart(2, '0'), 'Masuk'],
+            [String(dimasakCount).padStart(2, '0'), 'Dimasak'],
+            [String(selesaiCount).padStart(2, '0'), 'Selesai']
+          ].map(([num, label]) => (
+            <div key={label} className="rounded-xl bg-white/10 p-2">
+              <b className="text-xl font-bold" style={{fontWeight: 700}}>{num}</b>
+              <span className="block text-[9px] text-[#f6d7a5]">{label}</span>
+            </div>
+          ))}
         </div>
       </header>
 
       {/* Orders Table */}
       <div className="px-4 pt-5">
         <div className="mb-3 flex items-center justify-between">
-          <h2 className="text-[22px] font-bold text-[#4d2018]">Pesanan aktif</h2>
+          <h2 className="text-[22px]" style={{fontWeight: 700}}>Pesanan aktif</h2>
           <span className="rounded-full bg-[#f5dfac] px-2 py-1 font-mono text-[9px] font-bold text-[#89531f]">
             LIVE
           </span>
@@ -401,6 +297,6 @@ export default function AdminPage() {
           </div>
         </div>
       )}
-    </div>
+    </main>
   );
 }
